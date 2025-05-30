@@ -1,12 +1,14 @@
 # 💖 Feliz Nosso Dia - PWA Romântico
 
-Este é um projeto HTML/CSS/JS romântico com animações, música e suporte a PWA, ideal para homenagens especiais.
+Este é um projeto HTML/CSS/JS romântico com animações, música e suporte a PWA, ideal para homenagens especiais.  
 
 ## 🚀 Como rodar
 
 1. Clone o repositório
-2. Rode em qualquer navegador moderno (ou publique no Netlify)
-3. Funciona offline após o primeiro carregamento
+2. Edite as fotos, musicas e icones. 
+3. Rode em qualquer navegador moderno (ou publique no Netlify)
+4. Funciona offline após o primeiro carregamento
+
 
 ## 🎨 Tecnologias
 
@@ -16,5 +18,5 @@ Este é um projeto HTML/CSS/JS romântico com animações, música e suporte a P
 - PWA (Progressive Web App)
 
 ## 📦 Publicação
+A ser publicado como um PWA 
 
-Hospede facilmente no [Netlify](https://netlify.com) ou GitHub Pages.
