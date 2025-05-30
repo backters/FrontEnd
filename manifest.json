@@ -1,0 +1,22 @@
+{
+  "name": "Feliz dia dos namorados",
+    "description": "Uma aplicação para celebrar o dia dos namorados com mensagens e imagens especiais.",
+  "short_name": "Nosso Dia",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ff66a3",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "assets/coracao.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/coracao.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
