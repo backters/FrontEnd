@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#ff66a3" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+  <title>Feliz Dia Dos Namorados</title>
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    /* Estilo geral da página */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Arial', sans-serif;
+      overflow: hidden; /* evita barra de rolagem por causa das animações */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+      background: url('assets/background.jpg') no-repeat center center fixed;
+      background-size: cover;
+      position: relative;
+      transition: background 1.5s ease-in-out;
+    }
+
+    /* Divs usadas para transição suave entre os backgrounds */
+    .background-fade {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+      opacity: 0;
+      transition: opacity 1.5s ease-in-out;
+      pointer-events: none; /* não interfere em cliques */
+      z-index: 1; /* atrás dos outros elementos */
+    }
+
+    /* Classe que mostra a div de background com fade-in */
+    .background-fade.show {
+      opacity: 1;
+      z-index: 1;
+    }
+
+    /* Container do envelope */
+    .envelopes {
+      display: flex;
+      flex-direction: row;
+      gap: 30px;
+      justify-content: center;
+      align-items: center;
+      z-index: 20; /* na frente dos fundos */
+      position: relative;
+    }
+
+    /* Estilo do envelope (imagem fechada) */
+    .envelope {
+      width: 100px;
+      height: 100px;
+      background: url('assets/envelope-fechado.png') no-repeat center center;
+      background-size: contain;
+      cursor: pointer;
+      animation: flutuar 3s infinite ease-in-out;
+      z-index: 20;
+      position: relative;
+    }
+
+    /* Estilo do envelope aberto */
+    .envelope.aberto {
+      background: url('assets/envelope-aberto.png') no-repeat center center;
+      background-size: contain;
+    }
+
+    /* Animação suave de flutuação do envelope */
+    @keyframes flutuar {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* Mensagem centralizada abaixo do envelope */
+    .mensagem {
+      font-size: 1.5em;
+      color: #121111;
+      margin-top: 20px;
+      opacity: 0; /* começa invisível */
+      transition: opacity 1.5s ease-in-out;
+      z-index: 20;
+      max-width: 80vw;
+      font-weight: bold;
+      position: relative;
+    }
+
+    /* Pequena animação pulsante para o coração */
+    .pulsante {
+      animation: pulse 1s infinite;
+      color: #ff66a3;
+      font-size: 2em;
+      margin-top: 10px;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+
+    /* Estilos básicos para as partículas */
+    .heart, .butterfly {
+      position: fixed; /* para poder posicionar pela tela */
+      width: 30px;
+      height: 30px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      pointer-events: none; /* não interferem em clique */
+      z-index: 50; /* na frente de tudo */
+    }
+
+    /* Imagem do coração */
+    .heart {
+      background-image: url('./assets/coracao.png');
+    }
+
+    /* Imagem da borboleta */
+    .butterfly {
+      background-image: url('./assets/butterfly.png');
+    }
+  </style>
+</head>
+<body>
+  <!-- Divs para troca de background com fade -->
+  <div id="bg1" class="background-fade"></div>
+  <div id="bg2" class="background-fade"></div>
+
+  <!-- Envelope clicável -->
+  <div class="envelopes">
+    <div class="envelope" onclick="toggleEnvelope(this)"></div>
+  </div>
+
+  <!-- Mensagem abaixo do envelope -->
+  <div class="mensagem" id="mensagem">
+    <p><strong>Te Amo Muito Muito!</strong> ❤️</p>
+    <p>Te Amo infinitamente 💗</p><br>
+    <p>Feliz dia dos namorados, Meu Amor!</p>
+    <div class="pulsante">❤️</div>
+  </div>
+
+  <!-- Música de fundo -->
+  <audio id="musica" src="assets/audio.mp3"></audio>
+
+  <script>
+    // relação de BG para  o Background slideshow
+    
+    const backgrounds = [
+      'assets/foto.jpeg',   
+      'assets/foto1.jpeg', 
+      'assets/foto3.jpeg', 
+      'assets/foto25.jpeg', 
+      'assets/foto2.jpg',
+      'assets/background2.jpg', 
+
+    ];
+
+
+    const PARTICULAS_INTERVAL_MS = 200; // intervalo de criação das partículas (menor valor = mais partículas)
+    const PARTICULAS_VOLUME = 0.2; // volume da música (0.0 a 1.0)
+    const PARTICULAS_DURACAO_MIN_MS = 4000; // duração mínima das partículas
+    const PARTICULAS_DURACAO_MAX_MS = 7000; // duração máxima das partículas
+    const TRANSICAO_BACKGROUND_MS = 1000; // tempo de fade do background
+
+    // Seleção dos elementos no DOM
+    const envelope = document.querySelector('.envelope');
+    const mensagem = document.getElementById('mensagem');
+    const musica = document.getElementById('musica');
+    const bgDiv1 = document.getElementById('bg1');
+    const bgDiv2 = document.getElementById('bg2');
+
+    // Estado do envelope
+    let envelopeAberto = false;
+    let backgroundIndex = 0;
+    let intervalBackground = null;
+    let isBg1Visible = false;
+    let particulasInterval = null;
+
+    /**
+     * Alterna o background exibido com transição fade in/out suave.
+     */
+    function fadeBackground() {
+      const nextImage = backgrounds[backgroundIndex];
+      backgroundIndex = (backgroundIndex + 1) % backgrounds.length;
+
+      if (isBg1Visible) {
+        bgDiv2.style.backgroundImage = `url('${nextImage}')`;
+        bgDiv2.classList.add('show');
+        bgDiv1.classList.remove('show');
+      } else {
+        bgDiv1.style.backgroundImage = `url('${nextImage}')`;
+        bgDiv1.classList.add('show');
+        bgDiv2.classList.remove('show');
+      }
+      isBg1Visible = !isBg1Visible;
+    }
+
+    /**
+     * Inicia a rotação das imagens de fundo, com troca a cada 7.5 segundos.
+     */
+    function iniciarRotacaoBackground() {
+      backgroundIndex = 0;
+      bgDiv1.style.backgroundImage = `url('${backgrounds[backgroundIndex]}')`;
+      bgDiv1.classList.add('show');
+      bgDiv2.classList.remove('show');
+      isBg1Visible = true;
+
+      backgroundIndex++;
+      intervalBackground = setInterval(fadeBackground, 6000); // seta o tempo de troca de imagens 
+    }
+
+    /**
+     * Para a rotação das imagens e reseta para o background fixo estático.
+     */
+    function pararRotacaoBackground() {
+      if (intervalBackground) {
+        clearInterval(intervalBackground);
+        intervalBackground = null;
+      }
+      // Remove a exibição das divs de background com fade out
+      bgDiv1.classList.remove('show');
+      bgDiv2.classList.remove('show');
+
+      // Após a transição, retorna ao background fixo original
+      setTimeout(() => {
+        document.body.style.backgroundImage = "url('assets/background.jpg')";
+      }, TRANSICAO_BACKGROUND_MS);
+    }
+
+    /**
+     * Retorna um ponto aleatório na borda da janela para onde as partículas irão se mover.
+     * Pode ser topo, direita, baixo ou esquerda.
+     */
+    function pontoAleatorioNaBorda() {
+      const largura = window.innerWidth;
+      const altura = window.innerHeight;
+      const lado = Math.floor(Math.random() * 4); // 0 = topo, 1 = direita, 2 = baixo, 3 = esquerda
+      switch (lado) {
+        case 0: return { x: Math.random() * largura, y: 0 };
+        case 1: return { x: largura, y: Math.random() * altura };
+        case 2: return { x: Math.random() * largura, y: altura };
+        case 3: return { x: 0, y: Math.random() * altura };
+      }
+    }
+
+    /**
+     * Cria uma partícula (coração ou borboleta) que nasce no centro do envelope
+     * e se move até a borda da tela com fade out.
+     * @param {string} tipo - 'heart' ou 'butterfly'
+     */
+    function criarElementoAnimadoDoEnvelope(tipo) {
+      const rect = envelope.getBoundingClientRect();
+      const startX = rect.left + rect.width / 2;
+      const startY = rect.top + rect.height / 2;
+
+      const el = document.createElement('div');
+      el.className = tipo;
+      document.body.appendChild(el);
+
+      // Posiciona a partícula no centro do envelope
+      el.style.left = `${startX}px`;
+      el.style.top = `${startY}px`;
+      el.style.opacity = 1;
+
+      const destino = pontoAleatorioNaBorda();
+
+      // Calcula distância e deslocamento para animação
+      const dx = destino.x - startX;
+      const dy = destino.y - startY;
+
+      // Duração aleatória da animação entre valores configuráveis
+      const duracao = PARTICULAS_DURACAO_MIN_MS + Math.random() * (PARTICULAS_DURACAO_MAX_MS - PARTICULAS_DURACAO_MIN_MS);
+
+      // Executa animação de movimento + fade out
+      const anim = el.animate([
+        { transform: 'translate(0, 0)', opacity: 1 },
+        { transform: `translate(${dx}px, ${dy}px)`, opacity: 0 }
+      ], {
+        duration: duracao,
+        easing: 'ease-out',
+        fill: 'forwards'
+      });
+
+      // Remove o elemento após a animação para não acumular no DOM
+      anim.onfinish = () => el.remove();
+    }
+
+    /**
+     * Inicia a criação periódica de partículas (corações e borboletas) saindo do envelope.
+     */
+    function iniciarParticulas() {
+      particulasInterval = setInterval(() => {
+        criarElementoAnimadoDoEnvelope('heart');
+        criarElementoAnimadoDoEnvelope('butterfly');
+      }, PARTICULAS_INTERVAL_MS);
+    }
+
+    /**
+     * Para a criação das partículas.
+     */
+    function pararParticulas() {
+      if (particulasInterval) {
+        clearInterval(particulasInterval);
+        particulasInterval = null;
+      }
+    }
+
+    /**
+     * Controla o clique no envelope para abrir/fechar,
+     * tocar/parar música, fundos, msg e demais elementos.
+     */
+    function toggleEnvelope(el) {
+      if (!envelopeAberto) {
+        // Abre o envelope
+        el.classList.add('aberto');
+        envelopeAberto = true;
+
+        musica.volume = PARTICULAS_VOLUME;
+        musica.play();
+
+        iniciarRotacaoBackground();
+        iniciarParticulas();
+
+        mensagem.style.opacity = '1';
+
+        // Ao terminar a música, fecha o envelope automaticamente
+        musica.onended = () => {
+          fecharEnvelope();
+        };
+
+      } else {
+        // obvio, mas melhor falar que essa função fecha o envelope
+        fecharEnvelope();
+      }
+    }
+
+    /**
+     * Fecha o envelope e para todos os efeitos e música.
+     */
+    function fecharEnvelope() {
+      envelope.classList.remove('aberto');
+      envelopeAberto = false;
+
+      musica.pause();
+      musica.currentTime = 0;
+
+      pararRotacaoBackground();
+      pararParticulas();
+
+      mensagem.style.opacity = '0';
+    }
+
+    if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(reg => console.log('Service Worker registrado!', reg))
+      .catch(err => console.error('Erro ao registrar o Service Worker', err));
+  });
+}
+  </script>
+</body>
+</html>

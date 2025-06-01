@@ -1,0 +1,11 @@
+{
+  "name": "Feliz Dia Dos Namorados",
+  "short_name": "Te Amo Jana",
+  "description": "Presente romântico interativo para o Dia dos Namorados 💖",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ff66a3",
+  "orientation": "portrait"
+  
+}
